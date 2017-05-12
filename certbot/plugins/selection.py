@@ -133,7 +133,7 @@ def choose_plugin(prepared, question):
         else:
             return None
 
-noninstaller_plugins = ["webroot", "manual", "standalone", "dns-cloudflare", "dns-digitalocean"]
+noninstaller_plugins = ["webroot", "manual", "standalone", "dns-cloudflare", "dns-digitalocean", "dns-infoblox"]
 
 def record_chosen_plugins(config, plugins, auth, inst):
     "Update the config entries to reflect the plugins we actually selected."

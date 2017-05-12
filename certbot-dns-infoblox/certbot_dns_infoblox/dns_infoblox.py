@@ -2,6 +2,7 @@
 import logging
 
 import requests
+import json
 import zope.interface
 
 from certbot import errors
@@ -61,33 +62,32 @@ class _InfobloxClient(object):
     """
 
     def __init__(self, username, password, url):
-        self.ib = Infoblox.Infoblox(username, password, url)
         self.contenttype = 'json'
         self.req = requests.Session()
         self.url = url
         self.req.auth = requests.auth.HTTPBasicAuth(username, password)
 
-	"""
-	Magic method for calling Infoblox's API.
-	"""
+    """
+    Magic method for calling Infoblox's API.
+    """
 
     def __getattr__(self, command):
-		
-		Commands = {
+        commands = {'recordtxt': 'record:txt'}
 
-        if command in Commands:
-            command = Commands[command]
+        if command in commands:
+            command = commands[command]
 
         def wrapper(parameters, method='get'):
+            logger.debug("In wrapper with command {0}.".format(command))
             if method == 'get':
                 parameters['_return_type'] = self.contenttype
-                res = self.req.get(self.baseurl + command, params=parameters)
+                res = self.req.get(self.url + command, params=parameters)
             elif method == 'post':
-                res = self.req.post(self.baseurl + command, data=json.dumps(parameters))
+                res = self.req.post(self.url + command, data=json.dumps(parameters))
             elif method == 'put':
-                res = self.req.post(self.baseurl + command, params=parameters)
+                res = self.req.post(self.url + command, params=parameters)
             elif method == 'delete': # parameters is really just a ref variable
-                res = self.req.delete(self.baseurl + parameters)
+                res = self.req.delete(self.url + parameters)
             else:
                 return False # should we just throw an exception?
             return res.json()
@@ -107,16 +107,17 @@ class _InfobloxClient(object):
         data = {'name': record_name,
                 'text': record_content,
                 'ttl': record_ttl,
-				'use_ttl': true}
+                'use_ttl': True}
 
         try:
-            logger.debug('Attempting to add record to zone %s: %s', zone_id, data)
-            record_id = self.recordtxt('post', parameters=data)
-        except e:
-            logger.error('Encountered Infoblox Error adding TXT record: %d %s', e, e)
-            raise errors.PluginError('Error communicating with the Infoblox API: {0}'.format(e))
+            logger.debug('Attempting to add record to domain %s: %s', domain, data)
+            record_id = self.recordtxt(parameters=data, method='post')
+        except Exception, e:
+            logger.error('Encountered Infoblox Error adding TXT record: %s', e)
+            raise errors.PluginError('Error communicating with the Infoblox API')
 
         logger.debug('Successfully added TXT record with record_id: %s', record_id)
+        return record_id
 
     def del_txt_record(self, domain, record_name, record_content):
         """
@@ -132,22 +133,21 @@ class _InfobloxClient(object):
         :param str record_content: The record content (typically the challenge validation).
         """
 
-		record_id = self._find_txt_record_id(record_name, record_content)
-		if record_id:
-			try:
-				self.recordtxt('delete', parameters=record_id)
-				logger.debug('Successfully deleted TXT record.')
-			except e:
-				logger.warn('Encountered error deleting TXT record: %s', e)
-		else:
-			logger.debug('TXT record not found; no cleanup needed.')
+        record_id = self._find_txt_record_id(record_name, record_content)
+        if record_id:
+            try:
+                self.recordtxt(parameters=record_id, method='delete')
+                logger.debug('Successfully deleted TXT record.')
+            except:
+                logger.warn('Encountered error deleting TXT record: %s')
+        else:
+            logger.debug('TXT record not found; no cleanup needed.')
 
 
-    def _find_txt_record_id(self, zone_id, record_name, record_content):
+    def _find_txt_record_id(self, record_name, record_content):
         """
         Find the record_id for a TXT record with the given name and content.
 
-        :param str zone_id: The zone_id which contains the record.
         :param str record_name: The record name (typically beginning with '_acme-challenge.').
         :param str record_content: The record content (typically the challenge validation).
         :returns: The record_id, if found.
@@ -156,15 +156,18 @@ class _InfobloxClient(object):
 
         params = {'name': record_name,
                   'text': record_content}
+
         try:
             records = self.recordtxt(parameters=params)
-        except e:
-            logger.debug('Encountered error getting TXT record_id: %s', e)
+        except:
+            logger.debug('Encountered error getting TXT record_id')
+            logger.debug(records)
             records = []
 
         if len(records) > 0:
             # Cleanup is returning the system to the state we found it. If, for some reason,
             # there are multiple matching records, we only delete one because we only added one.
-            return records[0]
+            return records[0][u'_ref']
         else:
             logger.debug('Unable to find TXT record.')
+            return False

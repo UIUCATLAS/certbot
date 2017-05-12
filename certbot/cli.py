@@ -1225,6 +1225,9 @@ def _plugins_parsing(helpful, plugins):
                 help='Obtain certs using a DNS TXT record (if you are using Cloudflare for DNS).')
     helpful.add(["plugins", "certonly"], "--dns-digitalocean", action="store_true",
                 help='Obtain certs using a DNS TXT record (if you are using DigitalOcean for DNS).')
+    helpful.add(["plugins", "certonly"], "--dns-infoblox", action="store_true",
+                help='Obtain certs using a DNS TXT record (if you are using Infoblox for DNS).')
+
 
     # things should not be reorder past/pre this comment:
     # plugins_group should be displayed in --help before plugin
