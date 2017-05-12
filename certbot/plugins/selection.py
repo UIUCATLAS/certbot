@@ -241,6 +241,8 @@ def cli_plugin_requests(config):
         req_auth = set_configurator(req_auth, "dns-cloudflare")
     if config.dns_digitalocean:
         req_auth = set_configurator(req_auth, "dns-digitalocean")
+    if config.dns_infoblox:
+        req_auth = set_configurator(req_auth, "dns-infoblox")
     logger.debug("Requested authenticator %s and installer %s", req_auth, req_inst)
     return req_auth, req_inst
 
