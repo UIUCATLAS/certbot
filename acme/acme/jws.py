@@ -1,10 +1,10 @@
 """ACME-specific JWS.
 
-The JWS implementation in acme.jose only implements the base JOSE standard. In
+The JWS implementation in josepy only implements the base JOSE standard. In
 order to support the new header fields defined in ACME, this module defines some
-ACME-specific classes that layer on top of acme.jose.
+ACME-specific classes that layer on top of josepy.
 """
-from acme import jose
+import josepy as jose
 
 
 class Header(jose.Header):
@@ -49,6 +49,6 @@ class JWS(jose.JWS):
         # jwk field if kid is not provided.
         include_jwk = kid is None
         return super(JWS, cls).sign(payload, key=key, alg=alg,
-                                    protect=frozenset(['nonce', 'url', 'kid']),
+                                    protect=frozenset(['nonce', 'url', 'kid', 'jwk', 'alg']),
                                     nonce=nonce, url=url, kid=kid,
                                     include_jwk=include_jwk)

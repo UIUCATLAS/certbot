@@ -5,10 +5,9 @@ import pkg_resources
 import tempfile
 import unittest
 
+import josepy as jose
 import mock
 import zope.component
-
-from acme import jose
 
 from certbot import configuration
 
@@ -16,7 +15,6 @@ from certbot.tests import util as test_util
 
 from certbot.plugins import common
 
-from certbot_nginx import constants
 from certbot_nginx import configurator
 from certbot_nginx import nginxparser
 
@@ -29,10 +27,6 @@ class NginxTest(unittest.TestCase):  # pylint: disable=too-few-public-methods
         self.temp_dir, self.config_dir, self.work_dir = common.dir_setup(
             "etc_nginx", "certbot_nginx.tests")
         self.logs_dir = tempfile.mkdtemp('logs')
-
-        self.ssl_options = common.setup_ssl_options(
-            self.config_dir, constants.MOD_SSL_CONF_SRC,
-            constants.MOD_SSL_CONF_DEST)
 
         self.config_path = os.path.join(self.temp_dir, "etc_nginx")
 
@@ -70,7 +64,7 @@ def get_nginx_configurator(
                     in_progress_dir=os.path.join(backups, "IN_PROGRESS"),
                     server="https://acme-server.org:443/new",
                     tls_sni_01_port=5001,
-                    dry_run=False,
+                    http01_port=80
                 ),
                 name="nginx",
                 version=version)

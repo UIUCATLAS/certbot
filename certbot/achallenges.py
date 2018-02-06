@@ -19,15 +19,15 @@ Note, that all annotated challenges act as a proxy objects::
 """
 import logging
 
+import josepy as jose
+
 from acme import challenges
-from acme import jose
 
 
 logger = logging.getLogger(__name__)
 
 
 # pylint: disable=too-few-public-methods
-
 
 class AnnotatedChallenge(jose.ImmutableMap):
     """Client annotated challenge.

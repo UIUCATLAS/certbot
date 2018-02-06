@@ -258,7 +258,7 @@ class UniqueLineageNameTest(test_util.TempDirTestCase):
         for _ in six.moves.range(10):
             f, name = self._call("wow")
         self.assertTrue(isinstance(f, file_type))
-        self.assertTrue(isinstance(name, str))
+        self.assertTrue(isinstance(name, six.string_types))
         self.assertTrue("wow-0009.conf" in name)
 
     @mock.patch("certbot.util.os.fdopen")
@@ -368,6 +368,30 @@ class AddDeprecatedArgumentTest(unittest.TestCase):
                 pass
         self.assertTrue("--old-option" not in stdout.getvalue())
 
+    def test_set_constant(self):
+        """Test when ACTION_TYPES_THAT_DONT_NEED_A_VALUE is a set.
+
+        This variable is a set in configargparse versions < 0.12.0.
+
+        """
+        self._test_constant_common(set)
+
+    def test_tuple_constant(self):
+        """Test when ACTION_TYPES_THAT_DONT_NEED_A_VALUE is a tuple.
+
+        This variable is a tuple in configargparse versions >= 0.12.0.
+
+        """
+        self._test_constant_common(tuple)
+
+    def _test_constant_common(self, typ):
+        with mock.patch("certbot.util.configargparse") as mock_configargparse:
+            mock_configargparse.ACTION_TYPES_THAT_DONT_NEED_A_VALUE = typ()
+            self._call("--old-option", 1)
+            self._call("--old-option2", 2)
+        self.assertEqual(
+            len(mock_configargparse.ACTION_TYPES_THAT_DONT_NEED_A_VALUE), 1)
+
 
 class EnforceLeValidity(unittest.TestCase):
     """Test enforce_le_validity."""
@@ -395,6 +419,13 @@ class EnforceLeValidity(unittest.TestCase):
 
     def test_valid_domain(self):
         self.assertEqual(self._call(u"example.com"), u"example.com")
+
+    def test_input_with_scheme(self):
+        self.assertRaises(errors.ConfigurationError, self._call, u"http://example.com")
+        self.assertRaises(errors.ConfigurationError, self._call, u"https://example.com")
+
+    def test_valid_input_with_scheme_name(self):
+        self.assertEqual(self._call(u"http.example.com"), u"http.example.com")
 
 
 class EnforceDomainSanityTest(unittest.TestCase):

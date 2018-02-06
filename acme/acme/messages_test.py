@@ -1,10 +1,10 @@
 """Tests for acme.messages."""
 import unittest
 
+import josepy as jose
 import mock
 
 from acme import challenges
-from acme import jose
 from acme import test_util
 
 
@@ -26,6 +26,7 @@ class ErrorTest(unittest.TestCase):
             'type': ERROR_PREFIX + 'malformed',
         }
         self.error_custom = Error(typ='custom', detail='bar')
+        self.empty_error = Error()
         self.jobj_custom = {'type': 'custom', 'detail': 'bar'}
 
     def test_default_typ(self):
@@ -45,12 +46,6 @@ class ErrorTest(unittest.TestCase):
             'The request message was malformed', self.error.description)
         self.assertTrue(self.error_custom.description is None)
 
-    def test_str(self):
-        self.assertEqual(
-            'urn:ietf:params:acme:error:malformed :: The request message was '
-            'malformed :: foo :: title', str(self.error))
-        self.assertEqual('custom :: bar', str(self.error_custom))
-
     def test_code(self):
         from acme.messages import Error
         self.assertEqual('malformed', self.error.code)
@@ -60,13 +55,27 @@ class ErrorTest(unittest.TestCase):
     def test_is_acme_error(self):
         from acme.messages import is_acme_error
         self.assertTrue(is_acme_error(self.error))
-        self.assertTrue(is_acme_error(str(self.error)))
         self.assertFalse(is_acme_error(self.error_custom))
+        self.assertFalse(is_acme_error(self.empty_error))
+        self.assertFalse(is_acme_error("must pet all the {dogs|rabbits}"))
+
+    def test_unicode_error(self):
+        from acme.messages import Error, ERROR_PREFIX, is_acme_error
+        arabic_error = Error(
+                detail=u'\u0639\u062f\u0627\u0644\u0629', typ=ERROR_PREFIX + 'malformed',
+            title='title')
+        self.assertTrue(is_acme_error(arabic_error))
 
     def test_with_code(self):
         from acme.messages import Error, is_acme_error
         self.assertTrue(is_acme_error(Error.with_code('badCSR')))
         self.assertRaises(ValueError, Error.with_code, 'not an ACME error code')
+
+    def test_str(self):
+        self.assertEqual(
+            str(self.error),
+            u"{0.typ} :: {0.description} :: {0.detail} :: {0.title}"
+            .format(self.error))
 
 
 class ConstantTest(unittest.TestCase):
@@ -273,6 +282,9 @@ class ChallengeBodyTest(unittest.TestCase):
             'type': 'urn:ietf:params:acme:error:serverInternal',
             'detail': 'Unable to communicate with DNS server',
         }
+
+    def test_encode(self):
+        self.assertEqual(self.challb.encode('uri'), self.challb.uri)
 
     def test_to_partial_json(self):
         self.assertEqual(self.jobj_to, self.challb.to_partial_json())

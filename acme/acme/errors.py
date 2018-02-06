@@ -1,5 +1,5 @@
 """ACME errors."""
-from acme.jose import errors as jose_errors
+from josepy import errors as jose_errors
 
 
 class Error(Exception):
@@ -82,3 +82,14 @@ class PollError(ClientError):
     def __repr__(self):
         return '{0}(exhausted={1!r}, updated={2!r})'.format(
             self.__class__.__name__, self.exhausted, self.updated)
+
+class ConflictError(ClientError):
+    """Error for when the server returns a 409 (Conflict) HTTP status.
+
+    In the version of ACME implemented by Boulder, this is used to find an
+    account if you only have the private key, but don't know the account URL.
+    """
+    def __init__(self, location):
+        self.location = location
+        super(ConflictError, self).__init__()
+

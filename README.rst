@@ -15,6 +15,9 @@ protocol) that can automate the tasks of obtaining certificates and
 configuring webservers to use them. This client runs on Unix-based operating
 systems.
 
+To see the changes made to Certbot between versions please refer to our
+`changelog <https://github.com/certbot/certbot/blob/master/CHANGELOG.md>`_.
+
 Until May 2016, Certbot was named simply ``letsencrypt`` or ``letsencrypt-auto``,
 depending on install method. Instructions on the Internet, and some pieces of the
 software, may still refer to this older name.
@@ -132,8 +135,8 @@ Current Features
 
 * Supports multiple web servers:
 
-  - apache/2.x (beta support for auto-configuration)
-  - nginx/0.8.48+ (alpha support for auto-configuration, beta support in 0.14.0)
+  - apache/2.x
+  - nginx/0.8.48+
   - webroot (adds files to webroot directories in order to prove control of
     domains and obtain certs)
   - standalone (runs its own simple webserver to prove you control a domain)

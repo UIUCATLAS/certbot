@@ -16,12 +16,13 @@ ACCOUNT_URL = 'https://www.cloudflare.com/a/account/my-account'
 @zope.interface.implementer(interfaces.IAuthenticator)
 @zope.interface.provider(interfaces.IPluginFactory)
 class Authenticator(dns_common.DNSAuthenticator):
-    """DNS  Authenticator for Cloudflare
+    """DNS Authenticator for Cloudflare
 
     This Authenticator uses the Cloudflare API to fulfill a dns-01 challenge.
     """
 
-    description = 'Obtain certs using a DNS TXT record (if you are using Cloudflare for DNS).'
+    description = ('Obtain certificates using a DNS TXT record (if you are using Cloudflare for '
+                   'DNS).')
     ttl = 120
 
     def __init__(self, *args, **kwargs):
@@ -29,7 +30,7 @@ class Authenticator(dns_common.DNSAuthenticator):
         self.credentials = None
 
     @classmethod
-    def add_parser_arguments(cls, add):
+    def add_parser_arguments(cls, add):  # pylint: disable=arguments-differ
         super(Authenticator, cls).add_parser_arguments(add)
         add('credentials', help='Cloudflare credentials INI file.')
 

@@ -8,17 +8,16 @@ import unittest
 import six
 from six.moves import socketserver  #type: ignore  # pylint: disable=import-error
 
+import josepy as jose
 import OpenSSL
 
 from acme import errors
-from acme import jose
 from acme import test_util
 
 
 class SSLSocketAndProbeSNITest(unittest.TestCase):
     """Tests for acme.crypto_util.SSLSocket/probe_sni."""
 
-    _multiprocess_can_split_ = True
 
     def setUp(self):
         self.cert = test_util.load_comparable_cert('rsa2048_cert.pem')
@@ -69,7 +68,6 @@ class SSLSocketAndProbeSNITest(unittest.TestCase):
 class PyOpenSSLCertOrReqSANTest(unittest.TestCase):
     """Test for acme.crypto_util._pyopenssl_cert_or_req_san."""
 
-    _multiprocess_can_split_ = True
 
     @classmethod
     def _call(cls, loader, name):
@@ -131,11 +129,15 @@ class PyOpenSSLCertOrReqSANTest(unittest.TestCase):
         self.assertEqual(self._call_csr('csr-idnsans.pem'),
                          self._get_idn_names())
 
+    def test_critical_san(self):
+        self.assertEqual(self._call_cert('critical-san.pem'),
+                         ['chicago-cubs.venafi.example', 'cubs.venafi.example'])
+
+
 
 class RandomSnTest(unittest.TestCase):
     """Test for random certificate serial numbers."""
 
-    _multiprocess_can_split_ = True
 
     def setUp(self):
         self.cert_count = 5

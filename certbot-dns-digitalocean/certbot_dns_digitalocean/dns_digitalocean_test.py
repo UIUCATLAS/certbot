@@ -131,10 +131,10 @@ class DigitalOceanClientTest(unittest.TestCase):
 
         self.digitalocean_client.del_txt_record(DOMAIN, self.record_name, self.record_content)
 
-        correct_record_mock.destroy.assert_called()
+        self.assertTrue(correct_record_mock.destroy.called)
 
-        self.assertItemsEqual(first_record_mock.destroy.call_args_list, [])
-        self.assertItemsEqual(last_record_mock.destroy.call_args_list, [])
+        self.assertFalse(first_record_mock.destroy.call_args_list)
+        self.assertFalse(last_record_mock.destroy.call_args_list)
 
     def test_del_txt_record_error_finding_domain(self):
         self.manager.get_all_domains.side_effect = API_ERROR
