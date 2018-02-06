@@ -46,6 +46,8 @@ class Authenticator(dns_common.DNSAuthenticator):
             }
         )
 
+        dns_common.validate_file_permissions(self.conf('credentials'))
+
     def _perform(self, domain, validation_name, validation):
         self._get_infoblox_client().add_txt_record(domain, validation_name, validation, self.ttl)
 
